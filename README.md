@@ -16,6 +16,8 @@ Exposes the following Tuleap domains to your AI assistant:
 - **Workflow**: Manage a tracker's workflow transitions (create/delete/read), their access conditions, and their post actions (run job, set field value, freeze fields, hide fieldsets).
 - **Files & Repositories**: List Git repositories linked to a project. Upload files (as temporary files, in chunks) and read back attachments to attach to artifacts.
 - **Pull Requests**: List and filter pull requests, read details/commits/files/diffs, create pull requests, merge/abandon/reopen them, manage reviewers and labels, and read/post/edit comments (both general and inline).
+- **Kanban**: Read a board's definition, backlog, archive and column items; move/reorder cards; manage columns; create new kanban items.
+- **Platform & Admin**: Read/set/delete the platform or a project's banner message, and list system events (e.g. to check for background job errors).
 - **Users**: Search for Tuleap users by name or email.
 
 ## 🔐 Security & Best Practices
@@ -157,6 +159,28 @@ Once connected, your AI assistant can use the following tools natively:
 - `update_pull_request_labels(pull_request_id, add, remove)`: Add/remove labels on a pull request.
 - `get_pull_request_reviewers(pull_request_id)`: List the reviewers of a pull request.
 - `set_pull_request_reviewers(pull_request_id, users)`: Set (replace) the reviewers of a pull request.
+- `get_kanban(kanban_id)`: Get the definition of a kanban board.
+- `update_kanban(kanban_id, label, is_promoted, collapse_backlog, collapse_archive, collapse_column_id, collapse_column_value)`: Update a kanban's label/promotion or collapse state.
+- `delete_kanban(kanban_id)`: Delete a kanban board.
+- `get_kanban_backlog(kanban_id, tracker_report_id, limit, offset)`: Get the items in a kanban's backlog column.
+- `update_kanban_backlog(kanban_id, add_ids, order_ids, order_direction, order_compared_to)`: Add/reorder items in a kanban's backlog.
+- `get_kanban_archive(kanban_id, tracker_report_id, limit, offset)`: Get the archived items of a kanban.
+- `update_kanban_archive(kanban_id, add_ids, order_ids, order_direction, order_compared_to)`: Move/reorder items in a kanban's archive.
+- `get_kanban_column_items(kanban_id, column_id, tracker_report_id, limit, offset)`: Get the items in a kanban column.
+- `update_kanban_column_items(kanban_id, column_id, add_ids, order_ids, order_direction, order_compared_to)`: Move/reorder items in a kanban column (drag a card).
+- `create_kanban_column(kanban_id, label)`: Add a new column to a kanban board.
+- `reorder_kanban_columns(kanban_id, column_ids)`: Reorder a kanban's columns.
+- `update_kanban_column(column_id, kanban_id, label, wip_limit)`: Rename a kanban column and/or set its WIP limit.
+- `delete_kanban_column(column_id, kanban_id)`: Delete a column from a kanban board.
+- `create_kanban_item(kanban_id, label, column_id)`: Create a new kanban item (card).
+- `get_kanban_item(item_id)`: Get details of a kanban item.
+- `get_platform_banner()`: Get the platform-wide banner message.
+- `set_platform_banner(message, importance, expiration_date)`: Set the platform-wide banner (site admin only).
+- `delete_platform_banner()`: Delete the platform-wide banner (site admin only).
+- `get_project_banner(project_id)`: Get a project's banner message.
+- `set_project_banner(project_id, message)`: Set a project's banner message.
+- `delete_project_banner(project_id)`: Delete a project's banner message.
+- `get_system_events(status, limit, offset)`: List platform system events (site admin only); filter by status="error" for failed background jobs.
 
 ---
 

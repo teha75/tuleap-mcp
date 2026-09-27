@@ -42,11 +42,13 @@ class TuleapClient:
     async def post(self, endpoint: str, json: Optional[Dict] = None) -> Any:
         return await self._request("POST", endpoint, json=json)
 
-    async def put(self, endpoint: str, json: Optional[Dict] = None) -> Any:
+    async def put(self, endpoint: str, json: Any = None) -> Any:
         return await self._request("PUT", endpoint, json=json)
 
-    async def patch(self, endpoint: str, json: Optional[Dict] = None) -> Any:
-        return await self._request("PATCH", endpoint, json=json)
+    async def patch(
+        self, endpoint: str, json: Any = None, params: Optional[Dict] = None
+    ) -> Any:
+        return await self._request("PATCH", endpoint, json=json, params=params)
 
-    async def delete(self, endpoint: str) -> Any:
-        return await self._request("DELETE", endpoint)
+    async def delete(self, endpoint: str, params: Optional[Dict] = None) -> Any:
+        return await self._request("DELETE", endpoint, params=params)

@@ -2,7 +2,16 @@ import os
 import sys
 from mcp.server.fastmcp import FastMCP
 from .client import TuleapClient
-from .tools import users, trackers, agile, files, pull_requests, workflow
+from .tools import (
+    users,
+    trackers,
+    agile,
+    files,
+    pull_requests,
+    workflow,
+    kanban,
+    platform,
+)
 
 
 def get_client() -> TuleapClient:
@@ -276,6 +285,255 @@ async def delete_temporary_file(file_id: int) -> str:
     """Delete one of the current user's temporary files."""
     client = get_client()
     return str(await files.delete_temporary_file(client, file_id))
+
+
+@mcp.tool()
+async def get_kanban(kanban_id: int) -> str:
+    """Get the definition of a kanban board (columns, backlog/archive info)."""
+    client = get_client()
+    return str(await kanban.get_kanban(client, kanban_id))
+
+
+@mcp.tool()
+async def update_kanban(
+    kanban_id: int,
+    label: str = None,
+    is_promoted: bool = None,
+    collapse_backlog: bool = None,
+    collapse_archive: bool = None,
+    collapse_column_id: int = None,
+    collapse_column_value: bool = None,
+) -> str:
+    """Update a kanban's label/promotion, or collapse/expand its backlog, archive or a column
+    (saved as the current user's preference)."""
+    client = get_client()
+    return str(
+        await kanban.update_kanban(
+            client,
+            kanban_id,
+            label,
+            is_promoted,
+            collapse_backlog,
+            collapse_archive,
+            collapse_column_id,
+            collapse_column_value,
+        )
+    )
+
+
+@mcp.tool()
+async def delete_kanban(kanban_id: int) -> str:
+    """Delete a kanban board."""
+    client = get_client()
+    return str(await kanban.delete_kanban(client, kanban_id))
+
+
+@mcp.tool()
+async def get_kanban_backlog(
+    kanban_id: int, tracker_report_id: int = None, limit: int = 10, offset: int = 0
+) -> str:
+    """Get the items in a kanban's backlog column, optionally filtered by a tracker report."""
+    client = get_client()
+    return str(
+        await kanban.get_kanban_backlog(
+            client, kanban_id, tracker_report_id, limit, offset
+        )
+    )
+
+
+@mcp.tool()
+async def update_kanban_backlog(
+    kanban_id: int,
+    add_ids: list = None,
+    order_ids: list = None,
+    order_direction: str = None,
+    order_compared_to: int = None,
+) -> str:
+    """Add items to a kanban's backlog column and/or reorder items within it. order_direction
+    is "before" or "after" order_compared_to (an item id already in the backlog)."""
+    client = get_client()
+    return str(
+        await kanban.update_kanban_backlog(
+            client, kanban_id, add_ids, order_ids, order_direction, order_compared_to
+        )
+    )
+
+
+@mcp.tool()
+async def get_kanban_archive(
+    kanban_id: int, tracker_report_id: int = None, limit: int = 10, offset: int = 0
+) -> str:
+    """Get the archived (closed) items of a kanban, optionally filtered by a tracker report."""
+    client = get_client()
+    return str(
+        await kanban.get_kanban_archive(
+            client, kanban_id, tracker_report_id, limit, offset
+        )
+    )
+
+
+@mcp.tool()
+async def update_kanban_archive(
+    kanban_id: int,
+    add_ids: list = None,
+    order_ids: list = None,
+    order_direction: str = None,
+    order_compared_to: int = None,
+) -> str:
+    """Move items into a kanban's archive and/or reorder items within it."""
+    client = get_client()
+    return str(
+        await kanban.update_kanban_archive(
+            client, kanban_id, add_ids, order_ids, order_direction, order_compared_to
+        )
+    )
+
+
+@mcp.tool()
+async def get_kanban_column_items(
+    kanban_id: int,
+    column_id: int,
+    tracker_report_id: int = None,
+    limit: int = 10,
+    offset: int = 0,
+) -> str:
+    """Get the items in a given column of a kanban, optionally filtered by a tracker report."""
+    client = get_client()
+    return str(
+        await kanban.get_kanban_column_items(
+            client, kanban_id, column_id, tracker_report_id, limit, offset
+        )
+    )
+
+
+@mcp.tool()
+async def update_kanban_column_items(
+    kanban_id: int,
+    column_id: int,
+    add_ids: list = None,
+    order_ids: list = None,
+    order_direction: str = None,
+    order_compared_to: int = None,
+) -> str:
+    """Move items into a kanban column (e.g. drag a card to a new column) and/or reorder items
+    within it."""
+    client = get_client()
+    return str(
+        await kanban.update_kanban_column_items(
+            client,
+            kanban_id,
+            column_id,
+            add_ids,
+            order_ids,
+            order_direction,
+            order_compared_to,
+        )
+    )
+
+
+@mcp.tool()
+async def create_kanban_column(kanban_id: int, label: str) -> str:
+    """Add a new column to a kanban board."""
+    client = get_client()
+    return str(await kanban.create_kanban_column(client, kanban_id, label))
+
+
+@mcp.tool()
+async def reorder_kanban_columns(kanban_id: int, column_ids: list) -> str:
+    """Reorder a kanban's columns. column_ids is the full list of column ids in their new order."""
+    client = get_client()
+    return str(await kanban.reorder_kanban_columns(client, kanban_id, column_ids))
+
+
+@mcp.tool()
+async def update_kanban_column(
+    column_id: int, kanban_id: int, label: str = None, wip_limit: int = None
+) -> str:
+    """Rename a kanban column and/or set its WIP limit."""
+    client = get_client()
+    return str(
+        await kanban.update_kanban_column(
+            client, column_id, kanban_id, label, wip_limit
+        )
+    )
+
+
+@mcp.tool()
+async def delete_kanban_column(column_id: int, kanban_id: int) -> str:
+    """Delete a column from a kanban board."""
+    client = get_client()
+    return str(await kanban.delete_kanban_column(client, column_id, kanban_id))
+
+
+@mcp.tool()
+async def create_kanban_item(kanban_id: int, label: str, column_id: int = 0) -> str:
+    """Create a new kanban item (artifact) in a kanban board, in a given column (0 = backlog)."""
+    client = get_client()
+    return str(await kanban.create_kanban_item(client, kanban_id, label, column_id))
+
+
+@mcp.tool()
+async def get_kanban_item(item_id: int) -> str:
+    """Get details of a kanban item."""
+    client = get_client()
+    return str(await kanban.get_kanban_item(client, item_id))
+
+
+@mcp.tool()
+async def get_platform_banner() -> str:
+    """Get the platform-wide banner message, if any is set."""
+    client = get_client()
+    return str(await platform.get_platform_banner(client))
+
+
+@mcp.tool()
+async def set_platform_banner(
+    message: str, importance: str = "standard", expiration_date: str = None
+) -> str:
+    """Set the platform-wide banner (site admin only). importance is "standard", "warning"
+    or "critical". expiration_date is an optional ISO-8601 date; omit for no expiration."""
+    client = get_client()
+    return str(
+        await platform.set_platform_banner(client, message, importance, expiration_date)
+    )
+
+
+@mcp.tool()
+async def delete_platform_banner() -> str:
+    """Delete the platform-wide banner (site admin only)."""
+    client = get_client()
+    return str(await platform.delete_platform_banner(client))
+
+
+@mcp.tool()
+async def get_project_banner(project_id: int) -> str:
+    """Get a project's banner message, if any is set."""
+    client = get_client()
+    return str(await platform.get_project_banner(client, project_id))
+
+
+@mcp.tool()
+async def set_project_banner(project_id: int, message: str) -> str:
+    """Set a project's banner message (requires project admin rights)."""
+    client = get_client()
+    return str(await platform.set_project_banner(client, project_id, message))
+
+
+@mcp.tool()
+async def delete_project_banner(project_id: int) -> str:
+    """Delete a project's banner message."""
+    client = get_client()
+    return str(await platform.delete_project_banner(client, project_id))
+
+
+@mcp.tool()
+async def get_system_events(
+    status: str = None, limit: int = 10, offset: int = 0
+) -> str:
+    """List platform system events (site admin only). status filters by "new", "running",
+    "done", "warning" or "error" - use status="error" to see failed background jobs."""
+    client = get_client()
+    return str(await platform.get_system_events(client, status, limit, offset))
 
 
 @mcp.tool()
