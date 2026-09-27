@@ -14,6 +14,7 @@ Exposes the following Tuleap domains to your AI assistant:
 - **Agile & Projects**: Search projects, retrieve Epics, list User Stories, and create new Epics or User Stories. Get summarized Epic progress.
 - **Trackers & Artifacts**: Search for specific artifacts, get rich details (status, assigned to, dates, custom fields), update artifact fields, and link artifacts together.
 - **Files & Repositories**: List Git repositories linked to a project.
+- **Pull Requests**: List and filter pull requests, read details/commits/files/diffs, create pull requests, merge/abandon/reopen them, manage reviewers and labels, and read/post/edit comments (both general and inline).
 - **Users**: Search for Tuleap users by name or email.
 
 ## 🔐 Security & Best Practices
@@ -116,6 +117,26 @@ Once connected, your AI assistant can use the following tools natively:
 - `update_artifact(artifact_id, values, comment)`: Update an artifact's fields or add a comment.
 - `search_users(query)`: Search for Tuleap users.
 - `get_git_repos(project_id)`: Fetch a list of git repositories linked to a project.
+- `list_pull_requests(repository_id, status, authors, labels, search, target_branches, reviewers, related_to, order, limit, offset)`: List/filter pull requests of a git repository.
+- `get_pull_request_authors(repository_id, limit, offset)`: List the authors of pull requests in a repository.
+- `get_repository_pull_request_reviewers(repository_id, limit, offset)`: List the reviewers of pull requests in a repository.
+- `get_pull_request(pull_request_id)`: Get details of a specific pull request.
+- `create_pull_request(repository_id, repository_dest_id, branch_src, branch_dest)`: Create a new pull request.
+- `update_pull_request(pull_request_id, status, title, description, description_format)`: Merge/abandon/reopen a pull request, or edit its title/description.
+- `get_pull_request_commits(pull_request_id, limit, offset)`: List the commits of a pull request.
+- `get_pull_request_files(pull_request_id)`: List the files impacted by a pull request.
+- `get_pull_request_file_diff(pull_request_id, path)`: Get the unified diff of a single file in a pull request.
+- `get_pull_request_timeline(pull_request_id, limit, offset)`: Get the timeline of a pull request.
+- `get_pull_request_comments(pull_request_id, limit, offset, order)`: List the general comments of a pull request.
+- `add_pull_request_comment(pull_request_id, content, format, parent_id)`: Post a new general comment.
+- `update_pull_request_comment(comment_id, content)`: Update an existing general comment.
+- `add_pull_request_inline_comment(pull_request_id, content, file_path, unidiff_offset, position, format, parent_id)`: Post a new inline (diff) comment.
+- `update_pull_request_inline_comment(comment_id, content)`: Update an existing inline comment.
+- `reply_to_pull_request_inline_comment(comment_id, content, format)`: Reply to an inline comment.
+- `get_pull_request_labels(pull_request_id, limit, offset)`: List the labels of a pull request.
+- `update_pull_request_labels(pull_request_id, add, remove)`: Add/remove labels on a pull request.
+- `get_pull_request_reviewers(pull_request_id)`: List the reviewers of a pull request.
+- `set_pull_request_reviewers(pull_request_id, users)`: Set (replace) the reviewers of a pull request.
 
 ---
 

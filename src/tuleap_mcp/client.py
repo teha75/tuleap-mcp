@@ -44,3 +44,6 @@ class TuleapClient:
 
     async def put(self, endpoint: str, json: Optional[Dict] = None) -> Any:
         return await self._request("PUT", endpoint, json=json)
+
+    async def patch(self, endpoint: str, json: Optional[Dict] = None) -> Any:
+        return await self._request("PATCH", endpoint, json=json)
