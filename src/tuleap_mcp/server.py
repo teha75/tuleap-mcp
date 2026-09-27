@@ -11,6 +11,7 @@ from .tools import (
     workflow,
     kanban,
     platform,
+    docman,
 )
 
 
@@ -866,6 +867,248 @@ async def set_pull_request_reviewers(pull_request_id: int, users: list) -> str:
     client = get_client()
     return str(
         await pull_requests.set_pull_request_reviewers(client, pull_request_id, users)
+    )
+
+
+@mcp.tool()
+async def get_docman_service(project_id: int) -> str:
+    """Get a project's Document Manager service info, including its root folder (root_item.id),
+    the entry point for browsing the document tree."""
+    client = get_client()
+    return str(await docman.get_docman_service(client, project_id))
+
+
+@mcp.tool()
+async def get_docman_project_metadata(
+    project_id: int, limit: int = 10, offset: int = 0
+) -> str:
+    """List the custom metadata fields defined for a project's Document Manager."""
+    client = get_client()
+    return str(
+        await docman.get_docman_project_metadata(client, project_id, limit, offset)
+    )
+
+
+@mcp.tool()
+async def get_docman_item(item_id: int, with_size: bool = False) -> str:
+    """Get a document manager item (folder, file, link, embedded file, empty document...).
+    with_size (folders only) also returns the folder's total size in bytes."""
+    client = get_client()
+    return str(await docman.get_docman_item(client, item_id, with_size))
+
+
+@mcp.tool()
+async def get_docman_folder_content(
+    folder_id: int, limit: int = 50, offset: int = 0
+) -> str:
+    """List the direct children of a document manager folder."""
+    client = get_client()
+    return str(await docman.get_docman_folder_content(client, folder_id, limit, offset))
+
+
+@mcp.tool()
+async def get_docman_item_parents(
+    item_id: int, limit: int = 50, offset: int = 0
+) -> str:
+    """Get the parent folders of a document manager item, ordered from root to direct parent."""
+    client = get_client()
+    return str(await docman.get_docman_item_parents(client, item_id, limit, offset))
+
+
+@mcp.tool()
+async def get_docman_item_logs(item_id: int, limit: int = 50, offset: int = 0) -> str:
+    """Get the audit log (creation, updates, moves...) of a document manager item."""
+    client = get_client()
+    return str(await docman.get_docman_item_logs(client, item_id, limit, offset))
+
+
+@mcp.tool()
+async def search_docman_items(
+    folder_id: int,
+    global_search: str = None,
+    properties: list = None,
+    sort: list = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> str:
+    """Search paginated items recursively under a folder (use the project's root_item id from
+    get_docman_service to search the whole document tree). global_search matches all text
+    properties (supports "lorem", "lorem*", "*lorem", "*lorem*"). properties is a list of
+    {"name": ..., "value": ...} (or "value_date": {"date": "2022-01-30", "operator": "<|>|="})
+    filters on fields like "type", "title", "status", "owner", "field_XXX" (custom metadata).
+    sort is a list of {"name": ..., "order": "asc"|"desc"}."""
+    client = get_client()
+    return str(
+        await docman.search_docman_items(
+            client, folder_id, global_search, properties, sort, limit, offset
+        )
+    )
+
+
+@mcp.tool()
+async def create_docman_folder(
+    parent_folder_id: int, title: str, description: str = None, status: str = None
+) -> str:
+    """Create a new subfolder. status may be "none" (default), "draft", "approved" or
+    "rejected", if the project's document approval workflow is enabled."""
+    client = get_client()
+    return str(
+        await docman.create_docman_folder(
+            client, parent_folder_id, title, description, status
+        )
+    )
+
+
+@mcp.tool()
+async def create_docman_empty_document(
+    parent_folder_id: int, title: str, description: str = None, status: str = None
+) -> str:
+    """Create a new empty document placeholder in a folder."""
+    client = get_client()
+    return str(
+        await docman.create_docman_empty_document(
+            client, parent_folder_id, title, description, status
+        )
+    )
+
+
+@mcp.tool()
+async def create_docman_link(
+    parent_folder_id: int,
+    title: str,
+    link_url: str,
+    description: str = None,
+    status: str = None,
+) -> str:
+    """Create a new link document pointing to an external URL."""
+    client = get_client()
+    return str(
+        await docman.create_docman_link(
+            client, parent_folder_id, title, link_url, description, status
+        )
+    )
+
+
+@mcp.tool()
+async def create_docman_embedded_file(
+    parent_folder_id: int,
+    title: str,
+    content: str = "",
+    description: str = None,
+    status: str = None,
+) -> str:
+    """Create a new embedded file (HTML content stored directly in Tuleap, not uploaded)."""
+    client = get_client()
+    return str(
+        await docman.create_docman_embedded_file(
+            client, parent_folder_id, title, content, description, status
+        )
+    )
+
+
+@mcp.tool()
+async def create_docman_other_type_document(
+    parent_folder_id: int,
+    title: str,
+    type: str,
+    description: str = None,
+    status: str = None,
+) -> str:
+    """Create a new document of a custom "other" type (as configured by project admins)."""
+    client = get_client()
+    return str(
+        await docman.create_docman_other_type_document(
+            client, parent_folder_id, title, type, description, status
+        )
+    )
+
+
+@mcp.tool()
+async def create_docman_file(
+    parent_folder_id: int,
+    title: str,
+    file_name: str,
+    file_size: int,
+    description: str = None,
+    status: str = None,
+) -> str:
+    """Declare a new file document. This only creates the file's metadata; the returned
+    file_properties.upload_href must then be used to upload the actual file content
+    separately via the tus.io resumable upload protocol - not a plain JSON call, so it is
+    not handled by this tool."""
+    client = get_client()
+    return str(
+        await docman.create_docman_file(
+            client, parent_folder_id, title, file_name, file_size, description, status
+        )
+    )
+
+
+@mcp.tool()
+async def move_docman_item(
+    item_type: str, item_id: int, destination_folder_id: int
+) -> str:
+    """Move a document manager item to a different parent folder. item_type is one of:
+    folder, file, link, embedded_file, empty_document (not supported for other_type items)."""
+    client = get_client()
+    return str(
+        await docman.move_docman_item(client, item_type, item_id, destination_folder_id)
+    )
+
+
+@mcp.tool()
+async def delete_docman_item(item_type: str, item_id: int) -> str:
+    """Delete a document manager item. item_type is one of: folder, file, link,
+    embedded_file, empty_document, other_type."""
+    client = get_client()
+    return str(await docman.delete_docman_item(client, item_type, item_id))
+
+
+@mcp.tool()
+async def rename_docman_item(
+    item_type: str,
+    item_id: int,
+    title: str,
+    owner_id: int,
+    description: str = None,
+    status: str = None,
+    obsolescence_date: str = None,
+) -> str:
+    """Update the title/description/owner/status of a non-folder document manager item
+    (file, link, embedded_file, empty_document, other_type - use update_docman_folder for
+    folders). This is a full replace of the item's properties: owner_id is required by the
+    API - pass the item's current owner id (from get_docman_item) to leave it unchanged."""
+    client = get_client()
+    return str(
+        await docman.rename_docman_item(
+            client,
+            item_type,
+            item_id,
+            title,
+            owner_id,
+            description,
+            status,
+            obsolescence_date,
+        )
+    )
+
+
+@mcp.tool()
+async def update_docman_folder(
+    folder_id: int,
+    title: str,
+    description: str = None,
+    status_value: str = "none",
+    status_recursion: str = "none",
+) -> str:
+    """Update the title/description/status of a folder. This is a full replace of the
+    folder's properties. status_recursion applies status_value to "none" (this folder only),
+    "folders" (subfolders too) or "all_items" (subfolders and documents)."""
+    client = get_client()
+    return str(
+        await docman.update_docman_folder(
+            client, folder_id, title, description, status_value, status_recursion
+        )
     )
 
 

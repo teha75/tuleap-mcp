@@ -17,6 +17,7 @@ Exposes the following Tuleap domains to your AI assistant:
 - **Files & Repositories**: List Git repositories linked to a project. Upload files (as temporary files, in chunks) and read back attachments to attach to artifacts.
 - **Pull Requests**: List and filter pull requests, read details/commits/files/diffs, create pull requests, merge/abandon/reopen them, manage reviewers and labels, and read/post/edit comments (both general and inline).
 - **Kanban**: Read a board's definition, backlog, archive and column items; move/reorder cards; manage columns; create new kanban items.
+- **Document Manager**: Browse the document tree (folders, files, links, embedded files, empty documents, custom "other" types), search recursively, create/rename/move/delete items. File content upload uses the tus.io resumable protocol and isn't handled directly by this tool - it just declares the file and returns the upload URL.
 - **Platform & Admin**: Read/set/delete the platform or a project's banner message, and list system events (e.g. to check for background job errors).
 - **Users**: Search for Tuleap users by name or email.
 
@@ -181,6 +182,23 @@ Once connected, your AI assistant can use the following tools natively:
 - `set_project_banner(project_id, message)`: Set a project's banner message.
 - `delete_project_banner(project_id)`: Delete a project's banner message.
 - `get_system_events(status, limit, offset)`: List platform system events (site admin only); filter by status="error" for failed background jobs.
+- `get_docman_service(project_id)`: Get a project's Document Manager info, including its root folder id.
+- `get_docman_project_metadata(project_id, limit, offset)`: List the custom metadata fields defined for a project's Document Manager.
+- `get_docman_item(item_id, with_size)`: Get a document manager item (folder, file, link, embedded file, empty document...).
+- `get_docman_folder_content(folder_id, limit, offset)`: List the direct children of a folder.
+- `get_docman_item_parents(item_id, limit, offset)`: Get the parent folders of an item.
+- `get_docman_item_logs(item_id, limit, offset)`: Get the audit log of an item.
+- `search_docman_items(folder_id, global_search, properties, sort, limit, offset)`: Search items recursively under a folder.
+- `create_docman_folder(parent_folder_id, title, description, status)`: Create a new subfolder.
+- `create_docman_empty_document(parent_folder_id, title, description, status)`: Create a new empty document placeholder.
+- `create_docman_link(parent_folder_id, title, link_url, description, status)`: Create a new link document.
+- `create_docman_embedded_file(parent_folder_id, title, content, description, status)`: Create a new embedded (inline HTML) file.
+- `create_docman_other_type_document(parent_folder_id, title, type, description, status)`: Create a new document of a custom type.
+- `create_docman_file(parent_folder_id, title, file_name, file_size, description, status)`: Declare a new file document (returns a tus.io upload_href for the actual content).
+- `move_docman_item(item_type, item_id, destination_folder_id)`: Move an item to a different folder.
+- `delete_docman_item(item_type, item_id)`: Delete a document manager item.
+- `rename_docman_item(item_type, item_id, title, owner_id, description, status, obsolescence_date)`: Update a non-folder item's title/description/owner/status.
+- `update_docman_folder(folder_id, title, description, status_value, status_recursion)`: Update a folder's title/description/status.
 
 ---
 
