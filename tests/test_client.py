@@ -16,6 +16,17 @@ async def test_client_get_request():
 
 
 @pytest.mark.asyncio
+async def test_client_delete_request():
+    with respx.mock:
+        respx.delete("https://tuleap.example.com/api/v1/users/1").mock(
+            return_value=httpx.Response(204)
+        )
+        client = TuleapClient("https://tuleap.example.com", "fake-token")
+        response = await client.delete("/users/1")
+        assert response is None
+
+
+@pytest.mark.asyncio
 async def test_client_error_handling():
     with respx.mock:
         respx.get("https://tuleap.example.com/api/v1/notfound").mock(

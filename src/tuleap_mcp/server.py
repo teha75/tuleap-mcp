@@ -2,7 +2,7 @@ import os
 import sys
 from mcp.server.fastmcp import FastMCP
 from .client import TuleapClient
-from .tools import users, trackers, agile, files, pull_requests
+from .tools import users, trackers, agile, files, pull_requests, workflow
 
 
 def get_client() -> TuleapClient:
@@ -54,6 +54,228 @@ async def search_artifacts(tracker_id: int, query: str = None) -> str:
     """Search for artifacts in a specific tracker."""
     client = get_client()
     return str(await trackers.search_artifacts(client, tracker_id, query))
+
+
+@mcp.tool()
+async def get_tracker(tracker_id: int) -> str:
+    """Get the definition of a tracker (fields, semantics, workflow, structure)."""
+    client = get_client()
+    return str(await trackers.get_tracker(client, tracker_id))
+
+
+@mcp.tool()
+async def get_tracker_reports(tracker_id: int, limit: int = 10, offset: int = 0) -> str:
+    """List the reports (saved searches) defined on a tracker."""
+    client = get_client()
+    return str(await trackers.get_tracker_reports(client, tracker_id, limit, offset))
+
+
+@mcp.tool()
+async def get_tracker_artifacts(
+    tracker_id: int,
+    values: str = None,
+    limit: int = 100,
+    offset: int = 0,
+    query: dict = None,
+    expert_query: str = None,
+    order: str = "asc",
+) -> str:
+    """List all artifacts of a tracker. values="all" includes field values. query is a dict
+    of field_id/field_shortname -> value (or {"operator":..., "value":...}) criteria.
+    expert_query is a TQL expression (AND, OR, WITH/WITHOUT PARENT, BETWEEN(), IN(),
+    MYSELF()...). query and expert_query are mutually exclusive."""
+    client = get_client()
+    return str(
+        await trackers.get_tracker_artifacts(
+            client, tracker_id, values, limit, offset, query, expert_query, order
+        )
+    )
+
+
+@mcp.tool()
+async def get_tracker_parent_artifacts(
+    tracker_id: int, limit: int = 100, offset: int = 0
+) -> str:
+    """List the open artifacts of a tracker's parent tracker (possible parents for a new artifact)."""
+    client = get_client()
+    return str(
+        await trackers.get_tracker_parent_artifacts(client, tracker_id, limit, offset)
+    )
+
+
+@mcp.tool()
+async def update_tracker_workflow(tracker_id: int, workflow: dict) -> str:
+    """Partially update a tracker's workflow configuration. workflow is passed as-is, e.g.
+    {"set_transitions_rules": {"field_id": 1234}}, {"set_transitions_rules": {"is_used": true}},
+    {"delete_transitions_rules": true}, {"is_legacy": false} or {"is_advanced": true}."""
+    client = get_client()
+    return str(await trackers.update_tracker_workflow(client, tracker_id, workflow))
+
+
+@mcp.tool()
+async def get_tracker_report(report_id: int, with_unsaved_changes: bool = False) -> str:
+    """Get the definition of a tracker report."""
+    client = get_client()
+    return str(
+        await trackers.get_tracker_report(client, report_id, with_unsaved_changes)
+    )
+
+
+@mcp.tool()
+async def get_tracker_report_artifacts(
+    report_id: int,
+    with_unsaved_changes: bool = False,
+    values: str = None,
+    limit: int = 10,
+    offset: int = 0,
+    output_format: str = "nested",
+) -> str:
+    """Get the artifacts matching a tracker report's criteria. values may be "all" to
+    include field values. output_format may be "nested" (default), "flat" or
+    "flat_with_semicolon_string_array"."""
+    client = get_client()
+    return str(
+        await trackers.get_tracker_report_artifacts(
+            client,
+            report_id,
+            with_unsaved_changes,
+            values,
+            limit,
+            offset,
+            output_format,
+        )
+    )
+
+
+@mcp.tool()
+async def create_workflow_transition(tracker_id: int, from_id: int, to_id: int) -> str:
+    """Add a new transition to a tracker's workflow. from_id/to_id are field value ids
+    (use 0 as from_id for a transition from "new artifact")."""
+    client = get_client()
+    return str(
+        await workflow.create_workflow_transition(client, tracker_id, from_id, to_id)
+    )
+
+
+@mcp.tool()
+async def delete_workflow_transition(transition_id: int) -> str:
+    """Delete a transition from a tracker's workflow."""
+    client = get_client()
+    return str(await workflow.delete_workflow_transition(client, transition_id))
+
+
+@mcp.tool()
+async def get_workflow_transition(transition_id: int) -> str:
+    """Get the definition of a workflow transition."""
+    client = get_client()
+    return str(await workflow.get_workflow_transition(client, transition_id))
+
+
+@mcp.tool()
+async def update_workflow_transition_conditions(
+    transition_id: int,
+    authorized_user_group_ids: list = None,
+    not_empty_field_ids: list = None,
+    is_comment_required: bool = None,
+) -> str:
+    """Update the conditions (authorized user groups, required non-empty fields, comment
+    requirement) of a workflow transition. is_comment_required is ignored for a transition
+    from "new artifact"."""
+    client = get_client()
+    return str(
+        await workflow.update_workflow_transition_conditions(
+            client,
+            transition_id,
+            authorized_user_group_ids,
+            not_empty_field_ids,
+            is_comment_required,
+        )
+    )
+
+
+@mcp.tool()
+async def get_workflow_transition_actions(transition_id: int) -> str:
+    """List the post actions (run job, set field value, frozen fields, hidden fieldsets...)
+    of a workflow transition."""
+    client = get_client()
+    return str(await workflow.get_workflow_transition_actions(client, transition_id))
+
+
+@mcp.tool()
+async def set_workflow_transition_actions(
+    transition_id: int, post_actions: list
+) -> str:
+    """Replace all post actions of a workflow transition. Existing actions matched by "id"
+    are updated, actions without "id" are created, and actions not present are removed.
+    Each item needs at least a "type" (e.g. "run_job", "set_field_value", "frozen_fields",
+    "hidden_fieldsets") plus its type-specific fields (e.g. "job_url", or "field_type" +
+    "field_id" + "value" for set_field_value)."""
+    client = get_client()
+    return str(
+        await workflow.set_workflow_transition_actions(
+            client, transition_id, post_actions
+        )
+    )
+
+
+@mcp.tool()
+async def get_artifact_file_chunk(
+    file_id: int, offset: int = 0, limit: int = 1048576
+) -> str:
+    """Get a (base64-encoded) chunk of a file already attached to an artifact."""
+    client = get_client()
+    return str(await files.get_artifact_file_chunk(client, file_id, offset, limit))
+
+
+@mcp.tool()
+async def list_temporary_files(limit: int = 10, offset: int = 0) -> str:
+    """List the current user's temporary files (uploaded but not yet attached to an artifact)."""
+    client = get_client()
+    return str(await files.list_temporary_files(client, limit, offset))
+
+
+@mcp.tool()
+async def get_temporary_file_chunk(
+    file_id: int, offset: int = 0, limit: int = 1048576
+) -> str:
+    """Get a (base64-encoded) chunk of one of the current user's temporary files."""
+    client = get_client()
+    return str(await files.get_temporary_file_chunk(client, file_id, offset, limit))
+
+
+@mcp.tool()
+async def create_temporary_file(
+    name: str, mimetype: str, content_base64: str, description: str = None
+) -> str:
+    """Create a temporary file from its first (base64-encoded) chunk, max 1MB. Use
+    append_temporary_file_chunk for larger files. Attach the resulting file id to an
+    artifact via update_artifact's values on a File field."""
+    client = get_client()
+    return str(
+        await files.create_temporary_file(
+            client, name, mimetype, content_base64, description
+        )
+    )
+
+
+@mcp.tool()
+async def append_temporary_file_chunk(
+    file_id: int, content_base64: str, offset: int
+) -> str:
+    """Append a (base64-encoded) chunk to an existing temporary file. offset is the 1-based
+    index of this chunk (the first chunk from create_temporary_file is offset 1, so the
+    next one is 2, etc.)."""
+    client = get_client()
+    return str(
+        await files.append_temporary_file_chunk(client, file_id, content_base64, offset)
+    )
+
+
+@mcp.tool()
+async def delete_temporary_file(file_id: int) -> str:
+    """Delete one of the current user's temporary files."""
+    client = get_client()
+    return str(await files.delete_temporary_file(client, file_id))
 
 
 @mcp.tool()

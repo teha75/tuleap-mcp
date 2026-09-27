@@ -47,3 +47,6 @@ class TuleapClient:
 
     async def patch(self, endpoint: str, json: Optional[Dict] = None) -> Any:
         return await self._request("PATCH", endpoint, json=json)
+
+    async def delete(self, endpoint: str) -> Any:
+        return await self._request("DELETE", endpoint)

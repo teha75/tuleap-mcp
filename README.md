@@ -12,8 +12,9 @@ A secure, fully-tested **Model Context Protocol (MCP)** server for interacting w
 
 Exposes the following Tuleap domains to your AI assistant:
 - **Agile & Projects**: Search projects, retrieve Epics, list User Stories, and create new Epics or User Stories. Get summarized Epic progress.
-- **Trackers & Artifacts**: Search for specific artifacts, get rich details (status, assigned to, dates, custom fields), update artifact fields, and link artifacts together.
-- **Files & Repositories**: List Git repositories linked to a project.
+- **Trackers & Artifacts**: Search for specific artifacts, get rich details (status, assigned to, dates, custom fields), update artifact fields, and link artifacts together. Get tracker definitions, run/read tracker reports, and query artifacts with structured or TQL (expert) queries.
+- **Workflow**: Manage a tracker's workflow transitions (create/delete/read), their access conditions, and their post actions (run job, set field value, freeze fields, hide fieldsets).
+- **Files & Repositories**: List Git repositories linked to a project. Upload files (as temporary files, in chunks) and read back attachments to attach to artifacts.
 - **Pull Requests**: List and filter pull requests, read details/commits/files/diffs, create pull requests, merge/abandon/reopen them, manage reviewers and labels, and read/post/edit comments (both general and inline).
 - **Users**: Search for Tuleap users by name or email.
 
@@ -115,8 +116,27 @@ Once connected, your AI assistant can use the following tools natively:
 - `search_artifacts(tracker_id, query)`: Search for generic artifacts using TQL queries or keywords.
 - `get_artifact(artifact_id)`: Get deep metadata and fields for a specific artifact.
 - `update_artifact(artifact_id, values, comment)`: Update an artifact's fields or add a comment.
+- `get_tracker(tracker_id)`: Get the definition of a tracker (fields, semantics, workflow, structure).
+- `get_tracker_reports(tracker_id, limit, offset)`: List the reports (saved searches) defined on a tracker.
+- `get_tracker_artifacts(tracker_id, values, limit, offset, query, expert_query, order)`: List all artifacts of a tracker, with structured or TQL (expert) filtering.
+- `get_tracker_parent_artifacts(tracker_id, limit, offset)`: List possible parent artifacts for a new artifact in a tracker.
+- `update_tracker_workflow(tracker_id, workflow)`: Configure a tracker's workflow (transitions field, simple/advanced mode, legacy mode).
+- `get_tracker_report(report_id, with_unsaved_changes)`: Get the definition of a tracker report.
+- `get_tracker_report_artifacts(report_id, with_unsaved_changes, values, limit, offset, output_format)`: Get the artifacts matching a report's criteria.
+- `create_workflow_transition(tracker_id, from_id, to_id)`: Add a new transition to a tracker's workflow.
+- `delete_workflow_transition(transition_id)`: Delete a workflow transition.
+- `get_workflow_transition(transition_id)`: Get the definition of a workflow transition.
+- `update_workflow_transition_conditions(transition_id, authorized_user_group_ids, not_empty_field_ids, is_comment_required)`: Update a transition's access conditions.
+- `get_workflow_transition_actions(transition_id)`: List a transition's post actions.
+- `set_workflow_transition_actions(transition_id, post_actions)`: Replace a transition's post actions.
 - `search_users(query)`: Search for Tuleap users.
 - `get_git_repos(project_id)`: Fetch a list of git repositories linked to a project.
+- `get_artifact_file_chunk(file_id, offset, limit)`: Read a chunk of a file already attached to an artifact.
+- `list_temporary_files(limit, offset)`: List the current user's uploaded-but-not-yet-attached temporary files.
+- `get_temporary_file_chunk(file_id, offset, limit)`: Read a chunk of a temporary file.
+- `create_temporary_file(name, mimetype, content_base64, description)`: Upload the first chunk (max 1MB) of a new file, to later attach it to an artifact.
+- `append_temporary_file_chunk(file_id, content_base64, offset)`: Upload a further chunk of a large temporary file.
+- `delete_temporary_file(file_id)`: Delete a temporary file.
 - `list_pull_requests(repository_id, status, authors, labels, search, target_branches, reviewers, related_to, order, limit, offset)`: List/filter pull requests of a git repository.
 - `get_pull_request_authors(repository_id, limit, offset)`: List the authors of pull requests in a repository.
 - `get_repository_pull_request_reviewers(repository_id, limit, offset)`: List the reviewers of pull requests in a repository.
