@@ -60,7 +60,7 @@ async def test_create_user_story():
 
     client_mock.get.assert_called_once_with("/projects/1/trackers")
     client_mock.post.assert_called_once_with(
-        "/trackers/42/artifacts", json={"values": values}
+        "/artifacts", json={"tracker": {"id": 42}, "values": values}
     )
     assert result == {"id": 99, "title": "New Story"}
 
@@ -78,7 +78,7 @@ async def test_create_epic():
 
     client_mock.get.assert_called_once_with("/projects/1/trackers")
     client_mock.post.assert_called_once_with(
-        "/trackers/15/artifacts", json={"values": values}
+        "/artifacts", json={"tracker": {"id": 15}, "values": values}
     )
     assert result == {"id": 101, "title": "Big Feature"}
 
@@ -92,7 +92,7 @@ async def test_link_to_epic():
 
     expected_payload = {
         "values": [{"field_id": "parent_id", "value": 101}],
-        "comment": {"body": "Linked to Epic #101 via MCP Server"},
+        "comment": {"body": "Linked to Epic #101 via MCP Server", "format": "text"},
     }
     client_mock.put.assert_called_once_with("/artifacts/200", json=expected_payload)
     assert result == {"id": 200, "parent_id": 101}

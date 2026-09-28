@@ -36,3 +36,14 @@ async def test_client_error_handling():
         with pytest.raises(TuleapAPIError) as exc:
             await client.get("/notfound")
         assert "404" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_client_put_empty_body():
+    with respx.mock:
+        respx.put("https://tuleap.example.com/api/v1/artifacts/1").mock(
+            return_value=httpx.Response(200, content=b"")
+        )
+        client = TuleapClient("https://tuleap.example.com", "fake-token")
+        response = await client.put("/artifacts/1", json={"values": []})
+        assert response == {"status": 200}

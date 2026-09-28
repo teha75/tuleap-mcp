@@ -50,7 +50,7 @@ async def test_update_artifact():
     result = await update_artifact(client_mock, 123, values, comment)
 
     client_mock.put.assert_called_once_with(
-        "/artifacts/123", json={"values": values, "comment": {"body": comment}}
+        "/artifacts/123", json={"values": values, "comment": {"body": comment, "format": "text"}}
     )
     assert result == {"id": 123, "status": "updated"}
 

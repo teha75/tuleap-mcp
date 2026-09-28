@@ -47,8 +47,8 @@ async def create_epic(
 ) -> Dict[str, Any]:
     """Create a new epic artifact in a project."""
     tracker_id = await _get_epic_tracker_id(client, project_id)
-    payload = {"values": values}
-    return await client.post(f"/trackers/{tracker_id}/artifacts", json=payload)
+    payload = {"tracker": {"id": tracker_id}, "values": values}
+    return await client.post("/artifacts", json=payload)
 
 
 async def _get_user_story_tracker_id(client: TuleapClient, project_id: int) -> int:
@@ -82,8 +82,8 @@ async def create_user_story(
     """Create a new user story artifact in a project."""
     tracker_id = await _get_user_story_tracker_id(client, project_id)
 
-    payload = {"values": values}
-    return await client.post(f"/trackers/{tracker_id}/artifacts", json=payload)
+    payload = {"tracker": {"id": tracker_id}, "values": values}
+    return await client.post("/artifacts", json=payload)
 
 
 async def link_to_epic(
@@ -92,7 +92,7 @@ async def link_to_epic(
     """Link a child artifact to a parent epic."""
     payload = {
         "values": [{"field_id": "parent_id", "value": epic_id}],
-        "comment": {"body": f"Linked to Epic #{epic_id} via MCP Server"},
+        "comment": {"body": f"Linked to Epic #{epic_id} via MCP Server", "format": "text"},
     }
     return await client.put(f"/artifacts/{child_artifact_id}", json=payload)
 
